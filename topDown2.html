@@ -1,0 +1,177 @@
+<!Doctype html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.3/angular.js"></script>
+    <script src="angular-tree-repeat.js"></script>
+    <script src="ngDraggable.js"></script>
+    <script>
+
+        var app = angular.module("myApp", ['ngDraggable', 'sf.treeRepeat']);
+        app.controller("myCtrl", function ($scope, $timeout) {
+            function drawLines(){
+                function drawNode(item){
+                    if(typeof item.children != "undefined" && item.children.length > 0){
+                        //only draw lines under a node if there are children
+                        var nodeItem = jQuery("#" + item.guid);
+                        var nodeChildren = nodeItem.next();
+                        var nodeFirst = jQuery("#" + item.children[0].guid);
+                        var divX = nodeChildren.offset().left;
+                        var startX = nodeFirst.offset().left + nodeFirst.width()/2 - divX;
+                        var nodeLast = jQuery("#" + item.children[item.children.length-1].guid);
+                        var endX = nodeLast.offset().left + nodeLast.width()/2 - divX;
+                        //make a new svg
+                        var itemX = nodeItem.offset().left + nodeItem.width()/2 -divX;
+                        var sSVG = '<svg class="svglines" width=' + nodeChildren.width() + ' height=12>' +
+                            // line between
+                            '<line x1='+startX+ ' y1=6 x2='+endX +' y2=6 />' +
+                            // line from item;
+                            '<line x1='+itemX+ ' y1=0 x2='+itemX +' y2=6 />';
+                        for(var n = 0; n < item.children.length; n++){
+                            var nodeChild = jQuery("#" + item.children[n].guid);
+                            itemX = nodeChild.offset().left + nodeChild.width()/2 -divX;
+                            sSVG += '<line x1='+itemX+ ' y1=6 x2='+itemX +' y2=12 />';
+                        }
+                        sSVG += '</svg>';
+                        nodeChildren.prepend(sSVG);
+                        // now draw lines under the children's nodes
+                        for(var n = 0; n < item.children.length; n++){
+                            drawNode(item.children[n]);
+                        }
+                    }
+                }
+                jQuery(".svglines").remove();
+                // recursively go through the whole tree drawing lines under it's nodes
+                drawNode($scope.treeData);
+            }
+            $scope.treeData = { name: "Root", children: [{ name: "First Child", children: [{ name: "First Grandchild" },{ name: "Second Grandchild" }] },{ name: "Second Child" }] };
+            $scope.roles = [{name: "CEO", bRole: true}];
+            $scope.people = [{name: "Rich", bPerson: true}];
+            $scope.onDropComplete = function(oDrop, oDrag){
+                // recursively remove a node
+                function remove(oRoot, oDrag){
+                    for(var n = 0; typeof oRoot.children != "undefined" && n < oRoot.children.length; n++){
+                        if(oDrag == oRoot.children[n]) oRoot.children.splice(n,1);
+                        else remove(oRoot.children[n], oDrag);
+                    }
+                };
+                // recursively check to make sure that a node that is dropped on isn't a subnode of the node that is dragged
+                function bSubNode(oDrop, oDrag){
+                    if(oDrag == oDrop) return true;
+                    for(var n = 0; typeof oDrag.children != "undefined" && n < oDrag.children.length; n++){
+                        if(bSubNode(oDrop, oDrag.children[n]))return true;
+                    }
+                    return false;
+                };
+                if(oDrag != $scope.treeData && !bSubNode(oDrop, oDrag)){
+                    if(typeof oDrag.bRole != "undefined"){
+                        //then we are dropping a role
+                        var oNew = {name: oDrag.name};
+                        if(typeof oDrop.children == "undefined") oDrop.children = new Array();
+                        // add oDrag to oDrop's children
+                        oDrop.children.push(oNew);
+                    }else if(typeof oDrag.bPerson != "undefined"){
+                        // then we are dropping a person
+                        oDrop.incumbent = oDrag.name;
+                    }else{
+                        // now that we know that we are not on a subnode we will delete oDrag from it's current place
+                        remove($scope.treeData, oDrag);
+                        // make sure that the drop node has children
+                        if(typeof oDrop.children == "undefined") oDrop.children = new Array();
+                        // add oDrag to oDrop's children
+                        oDrop.children.push(oDrag);
+
+                    }
+                    // redraw lines when we drop an object
+                    $timeout(drawLines);
+                }
+
+            };
+            $scope.createGuid = function(item){
+                if(typeof item.guid == "undefined"){
+                    var d = new Date().getTime();
+                    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = (d + Math.random() * 16) % 16 | 0;
+                        d = Math.floor(d / 16);
+                        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                    });
+                    item.guid = uuid;
+
+                }
+                return item.guid;
+            };
+
+            // draw initial set of lines
+            $timeout(drawLines);
+
+
+        });
+
+    </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <style>
+        td{
+            vertical-align: top;
+        }
+        .node, .role, .person{
+            min-height: 2em;
+            width: 10em;
+            padding: .2em .5em;
+            border: 1px solid;
+            margin:0 auto;
+        }
+        svg{
+            display:block;
+            margin:0;
+        }
+        line{
+            stroke:rgb(0,0,0);
+            stroke-width:1;
+            shape-rendering:crispEdges;
+        }
+        center{
+            overflow:auto;
+        }
+     </style>
+</head>
+<body ng-app="myApp" ng-controller="myCtrl">
+    <div>
+        <p>A Simple Static Tree. ... Try dragging and dropping the nodes within the tree and from the sides.</p>
+        <div class="row">
+            <div class="col-xs-2">
+                <p>Roles:</p>
+                <div class="role" ng-repeat="role in roles" ng-drag="true" ng-drag-data="role">
+                    {{role.name}}
+                </div>
+            </div>
+            <div class="col-xs-8 center">
+                <p>Tree:</p>
+                <table border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td sf-treepeat="node in children of treeData">
+                            <div id="{{createGuid(node)}}" class="node" ng-drag="node == treeData?false:true" ng-drag-data="node" ng-drop="true" ng-drop-success="onDropComplete(node, $data)">
+                                {{node.name}}: {{node.incumbent}}
+                            </div>
+                            <div draw-lines>
+                                <table border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td sf-treecurse></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-xs-2">
+                <p>People:</p>
+                <div class="role" ng-repeat="person in people" ng-drag="true" ng-drag-data="person">
+                    {{person.name}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -7,6 +7,8 @@ There is an example with a [horizontal tree here](https://rhildred.github.io/ang
 
 There is an example with a [top down tree here](https://rhildred.github.io/angular-tree-repeat/topDown.html).
 
+There is an example with a [more complicated top down tree with side panels here](https://rhildred.github.io/angular-tree-repeat/topDown.html).
+
 About angular-tree-repeat
 -----
 
