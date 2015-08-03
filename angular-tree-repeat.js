@@ -1,4 +1,13 @@
-// © Copyright 2014 Paul Thomas <paul@stackfull.com>.  All Rights Reserved.
+// angular-tree-repeat - v0.0.1
+
+// Include this first to define the module that the directives etc. hang off.
+//
+(function(){
+'use strict';
+angular.module('sf.treeRepeat', []);
+}());
+
+
 
 // sf-tree-repeat directive
 // ========================

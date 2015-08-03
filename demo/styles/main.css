@@ -1,3 +1,0 @@
-header { cursor: pointer; }
-header:before { content: '► '; }
-header.open:before { content: '▼ '; }

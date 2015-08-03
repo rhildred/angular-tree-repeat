@@ -1,0 +1,61 @@
+<!Doctype html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.3/angular.js"></script>
+    <script src="angular-tree-repeat.js"></script>
+    <script src="ngDraggable.js"></script>
+    <script>
+        angular.module("myApp", ['ngDraggable', 'sf.treeRepeat']).controller("myCtrl", function ($scope) {
+            $scope.treeData = { name: "Root", children: [{ name: "First Child", children: [{ name: "First Grandchild" },{ name: "Second Grandchild" }] },{ name: "Second Child" }] };
+            $scope.onDropComplete = function(oDrop, oDrag){
+                function bSubNode(oDrop, oDrag){
+                    if(oDrag == oDrop) return true;
+                    for(var n = 0; typeof oDrag.children != "undefined" && n < oDrag.children.length; n++){
+                        if(bSubNode(oDrop, oDrag.children[n]))return true;
+                    }
+                    return false;
+                };
+                function remove(oRoot, oDrag){
+                    for(var n = 0; typeof oRoot.children != "undefined" && n < oRoot.children.length; n++){
+                        if(oDrag == oRoot.children[n]) oRoot.children.splice(n,1);
+                        else remove(oRoot.children[n], oDrag);
+                    }
+                }
+                if(oDrag != $scope.treeData && !bSubNode(oDrop, oDrag)){
+                    // now that we know that we are not on a subnode we will delete oDrag from it's current place
+                    remove($scope.treeData, oDrag);
+                    // make sure that the drop node has children
+                    if(typeof oDrop.children == "undefined") oDrop.children = new Array();
+                    oDrop.children.push(oDrag);
+                }
+
+            }
+
+        });
+
+    </script>
+    <style>
+    </style>
+</head>
+<body ng-app="myApp" ng-controller="myCtrl">
+    <div>
+        <p>A Simple Static Tree.
+            <h4>Tree</h4>
+
+            <ul>
+                <li sf-treepeat="node in children of treeData">
+                    <div ng-drag="node == treeData?false:true" ng-drag-data="node" ng-drop="true" ng-drop-success="onDropComplete(node, $data)">
+                        {{node.name}}
+                    </div>
+                    <ul>
+                        <li sf-treecurse></li>
+                    </ul>
+                </li>
+            </ul>
+
+    </div>
+
+</body>
+</html>

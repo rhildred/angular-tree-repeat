@@ -1,20 +1,23 @@
-angular-tree-repeat
+more angular-tree-repeat examples
 ===================
 
-Source for the sf.treeRepeat module for AngularJS
+Combined [ngDraggable](https://github.com/fatlinesofcode/ngDraggable) with [angular-tree-repeat](https://github.com/stackfull/angular-tree-repeat) for drag and drop functionality.
 
-About
+There is an example with a [horizontal tree here](https://rhildred.github.io/angular-tree-repeat).
+
+There is an example with a [top down tree here](https://rhildred.github.io/angular-tree-repeat/topDown.html).
+
+About angular-tree-repeat
 -----
 
 Adds a pair of directives that can be used to display recursive (tree) data.
 
 See http://blog.stackfull.com/2014/02/trees-in-angularjs/ for the back story.
 
-Usage
+angular-tree-repeat Usage
 -----
 
-Whether you build the component, copy the raw source or use bower (see below),
-the end result should be included in your page and the module `sf.treeRepeat`
+The directives should be included in your page and the module `sf.treeRepeat`
 included as a dependency:
 
     angular.module('myModule', ['sf.treeRepeat']);
@@ -30,48 +33,63 @@ Then use the directive `sf-treepeat` and `sf-treecurse` as follows:
       </li>
     </ul>
 
-Check out the examples in the demo folder for all the details.
+About ngDraggable
+-------
 
-Developing
-----------
+Adds directives for drag and drop.
 
-[Grunt](http://gruntjs.com/) is used as the build tool, so you will need
-[node](http://nodejs.org/) and [npm](https://npmjs.org/) installed. Since v0.4,
-grunt has 2 parts: the heavy lifting package `grunt` and the shell command
-`grunt-cli`. If you haven't already installed `grunt-cli` globally, do so now
-with:
+ngDraggable Usage
+----
 
-    sudo npm install -g grunt-cli
+- Add `angular` and `ngDraggable` to your code:
 
-To run the simple demo, install the npm dependencies for the build tools and go:
+```html
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js"></script>
+<script src="ngDraggable.js"></script>
+```
 
-    npm install
-    grunt demo
+- Add a dependency to the `ngDraggable` module in your application.
 
-You can now view the demo at http://localhost:8000/
+```js
+angular.module('app', ['ngDraggable']);
+```
 
-Build with `grunt dist` and choose a file from the `dist` directory.
+- Add attribute directives to your html:
 
-Using the component
--------------------
 
-For use with [bower](http://twitter.github.com/bower/), there is a separate
-repo containing just the built artifacts here:
-[angular-tree-repeat-bower](https://github.com/stackfull/angular-tree-repeat-bower).
-You can add the component to your project with:
+Draggable usage:
+```html
+<div ng-drag="true" ng-drag-data="{obj}" ng-drag-success="onDragComplete($data,$event)" ng-center-anchor="true">
+  Draggable div
+</div>
+```
 
-    bower install angular-tree-repeat
+* `ng-center-anchor` is optional. If not specified, it defaults to false.
+* If the draggable is also clickable (ng-click, ng-dblclick) the script wont react.
+* You can define a drag-button as child with the attribute `ng-drag-handle`.
 
-Or by adding a line to your `component.json` file.
+```ng-drag-start``` and ```ng-drag-move``` is also available. Add to the ng-drop element.
+``ng-drag-stop`` can be used when you want to react to the user dragging an item and it wasn't dropped into the target container.
 
-If you are using `grunt` for your build, consider using a plugin like
-[bowerful](https://npmjs.org/package/grunt-bowerful).
+```draggable:start```, ```draggable:move``` and  ```draggable:end``` events are broadcast on drag actions.
 
-All comments to <paul@stackfull.com>
 
-ChangeLog
----------
+Drop area usage:
+```html
+<div ng-drop="true" ng-drop-success="onDropComplete($data,$event)" >
+  Drop area
+</div>
+```
 
-### 0.0.0 (09 Feb 2014)
-Prototype
+### Angular Controller:
 
+```js
+app.controller('MainCtrl', function ($scope) {
+    $scope.onDragComplete=function(data,evt){
+       console.log("drag success, data:", data);
+    }
+    $scope.onDropComplete=function(data,evt){
+        console.log("drop success, data:", data);
+    }
+ };
+```
